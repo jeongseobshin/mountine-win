@@ -72,7 +72,7 @@ h1, h2, h3 { margin: 0; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
 .stats div { background: rgba(255,255,255,.14); border-radius: 10px; padding: 6px 4px; text-align: center; }
 .stats b { display: block; font-size: 16px; }
-.stats span { font-size: 11px; opacity: .85; }
+.stats span { font-size: 11px; opacity: .85; white-space: nowrap; letter-spacing: -0.3px; }
 
 main { max-width: 960px; margin: 0 auto; padding: 0 16px; }
 
@@ -186,3 +186,20 @@ main { max-width: 960px; margin: 0 auto; padding: 0 16px; }
 .reward .hl { background: rgba(232,163,61,.18); font-weight: 700; }
 
 .foot { text-align: center; color: var(--muted); font-size: 12px; padding: 8px 16px 32px; }
+
+/* ---------- 앱 설치 / 아이콘 ---------- */
+.sheet h3.sub { font-size: 17px; margin-top: 18px; }
+.icon-current { display: flex; gap: 12px; align-items: center; margin: 10px 0; }
+.icon-current img { width: 64px; height: 64px; border-radius: 16px; flex: none; box-shadow: var(--shadow); }
+.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 8px; }
+.icon-opt { aspect-ratio: 1; padding: 0; border: 2px solid transparent; border-radius: 16px; overflow: hidden; background: var(--bg); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.icon-opt img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.icon-opt.on { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(232,163,61,.35); }
+.icon-opt.photo span { font-size: 11px; line-height: 1.3; text-align: center; color: var(--muted); }
+.install-head { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; padding-right: 36px; }
+.install-head img { width: 60px; height: 60px; border-radius: 14px; box-shadow: var(--shadow); }
+.install-head h3 { padding: 0; margin: 0; }
+#installBody p { margin: 0 0 10px; }
+.steps { margin: 0 0 12px; padding-left: 22px; }
+.steps li { margin: 4px 0; }
+.kbd { display: inline-block; border: 1px solid var(--line); background: var(--bg); border-radius: 6px; padding: 0 6px; font-size: 13px; }
