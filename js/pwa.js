@@ -135,38 +135,59 @@
   let deferred = null;
   const dlg = $("#installDlg");
 
+  const wantInstall = new URLSearchParams(location.search).has("install"); // 카톡 → 외부 브라우저로 넘어온 경우
+  if (wantInstall) history.replaceState(null, "", location.pathname + location.hash);
+
+  // 버튼 한 번으로 설치 (크롬·삼성인터넷·엣지). 브라우저 확인창의 "설치"만 누르면 끝.
+  async function installNow() {
+    if (!deferred) return openInstall(true);
+    const ev = deferred;
+    deferred = null; // prompt()는 한 번만 쓸 수 있어요
+    if (dlg?.open) dlg.close();
+    ev.prompt();
+    const { outcome } = await ev.userChoice.catch(() => ({}));
+    if (outcome !== "accepted") localStorage.setItem(DISMISS_KEY, Date.now());
+    updateTopButton();
+  }
+
+  function updateTopButton() {
+    const b = $("#btnInstallTop");
+    if (!b) return;
+    b.hidden = isStandalone() || !(deferred || isIOS || isInApp);
+  }
+
   function installContent() {
     const icon = loadIcon()?.i192 || "icons/icon-192.png";
-    let body, actions;
-    if (isInApp) {
-      body = `<p>지금은 ${isKakao ? "카카오톡" : "앱"} 안의 브라우저라 설치가 안 돼요.<br>
-        <b>${isIOS ? "사파리" : "크롬"}</b>으로 열어서 설치해 주세요.</p>
-        <ol class="steps"><li>오른쪽 아래(또는 위) <b>⋯ 메뉴</b> 누르기</li><li><b>다른 브라우저로 열기</b> 선택</li></ol>`;
+    let body, actions, ios = false;
+    if (deferred) {
+      body = `<p>버튼을 누르면 <b>홈 화면에 바로 설치</b>돼요.<br>더 빠르고, 산 위에서 인터넷이 약해도 열려요.</p>`;
+      actions = `<button type="button" class="btn big" data-install="go">📲 홈 화면에 설치</button>`;
+    } else if (isInApp) {
+      body = `<p>${isKakao ? "카카오톡" : "앱"} 안에서는 설치가 막혀 있어요.<br>
+        ${isKakao ? "아래 버튼을 누르면 브라우저로 열리고, 거기서 바로 설치할 수 있어요." : "주소를 복사해서 크롬이나 사파리에서 열어주세요."}</p>`;
       actions = isKakao
-        ? `<button type="button" class="btn" data-install="external">🌐 외부 브라우저로 열기</button>`
-        : `<button type="button" class="btn" data-install="copy">🔗 주소 복사하기</button>`;
-    } else if (deferred) {
-      body = `<p>홈 화면에 앱으로 설치하면 더 빠르고, <b>산 위에서 인터넷이 약해도</b> 열려요.</p>`;
-      actions = `<button type="button" class="btn" data-install="go">📲 앱 설치하기</button>`;
+        ? `<button type="button" class="btn big" data-install="external">📲 브라우저로 열어서 설치</button>`
+        : `<button type="button" class="btn big" data-install="copy">🔗 주소 복사하기</button>`;
     } else if (isIOS) {
-      body = `<p>아이폰은 사파리에서 이렇게 설치해요.</p>
-        <ol class="steps">
-          <li>아래쪽 <b>공유 버튼</b> <span class="kbd">⬆︎</span> 누르기</li>
-          <li><b>홈 화면에 추가</b> <span class="kbd">＋</span> 선택</li>
-          <li>오른쪽 위 <b>추가</b> 누르기</li>
+      ios = true;
+      body = `<p class="ios-note">아이폰은 애플 정책 때문에 웹사이트가 직접 설치할 수 없어요. <b>사파리 버튼 두 번</b>이면 돼요.</p>
+        <ol class="steps big-steps">
+          <li>화면 아래 <b>공유</b> <span class="kbd">⬆︎</span> 버튼 (안 보이면 <span class="kbd">⋯</span> 먼저)</li>
+          <li><b>홈 화면에 추가</b> <span class="kbd">＋</span> → <b>추가</b></li>
         </ol>`;
-      actions = "";
+      actions = `<button type="button" class="btn big" data-install="later">알겠어요, 해볼게요</button>`;
     } else {
       body = `<p>브라우저 메뉴(<b>⋮</b>)에서 <b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 눌러 주세요.</p>`;
       actions = "";
     }
     $("#installBody").innerHTML = `
-      <div class="install-head"><img src="${icon}" alt="앱 아이콘"><div><h3>명산도장 앱 설치</h3><div class="muted small">100대 명산 도장깨기</div></div></div>
+      <div class="install-head"><img src="${icon}" alt="앱 아이콘"><div><h3>명산도장 앱</h3><div class="muted small">100대 명산 도장깨기</div></div></div>
       ${body}
       <div class="menu-actions">${actions}
-        <button type="button" class="btn ghost" data-install="icon">🎨 설치 전에 아이콘 바꾸기</button>
-        <button type="button" class="btn ghost" data-install="later">나중에 할게요</button>
+        <button type="button" class="btn ghost" data-install="icon">🎨 아이콘 먼저 바꾸기</button>
+        ${ios ? "" : `<button type="button" class="btn ghost" data-install="later">나중에 할게요</button>`}
       </div>`;
+    if (ios) $("#installBody").insertAdjacentHTML("beforeend", `<div class="ios-arrow" aria-hidden="true">⬇︎</div>`);
   }
 
   function openInstall(force) {
@@ -186,32 +207,32 @@
     e.preventDefault();
     deferred = e;
     $("#btnInstall")?.removeAttribute("hidden");
-    if (dlg?.open) installContent(); else setTimeout(() => openInstall(false), 1200);
+    updateTopButton();
+    if (dlg?.open) installContent(); else setTimeout(() => openInstall(wantInstall), 800);
   });
   addEventListener("appinstalled", () => {
     deferred = null;
     dlg?.open && dlg.close();
+    updateTopButton();
     toast("설치 완료! 홈 화면에서 명산도장을 열어보세요 ⛰️");
   });
 
-  // 설치 이벤트가 없는 브라우저(iOS·인앱 등)는 잠시 뒤 안내 팝업
+  // 아이폰·카톡 등 설치 이벤트가 없는 곳은 잠시 뒤 안내. 크롬 계열은 설치 준비가 되면(위 이벤트) 바로 설치 버튼 팝업.
   if (!isStandalone()) {
-    setTimeout(() => { if (!deferred) openInstall(false); }, 2500);
+    if (isIOS || isInApp) setTimeout(() => openInstall(wantInstall), 2000);
     $("#btnInstall")?.removeAttribute("hidden");
   }
+  updateTopButton();
 
   dlg?.addEventListener("click", async (e) => {
     if (e.target === dlg) { localStorage.setItem(DISMISS_KEY, Date.now()); return dlg.close(); }
     const act = e.target.closest("[data-install]")?.dataset.install;
     if (!act) return;
-    if (act === "go" && deferred) {
-      deferred.prompt();
-      const { outcome } = await deferred.userChoice.catch(() => ({}));
-      deferred = null;
-      dlg.close();
-      if (outcome !== "accepted") localStorage.setItem(DISMISS_KEY, Date.now());
+    if (act === "go") {
+      installNow();
     } else if (act === "external") {
-      location.href = "kakaotalk://web/openExternal?url=" + encodeURIComponent(location.href);
+      const u = new URL(location.href); u.searchParams.set("install", "1");
+      location.href = "kakaotalk://web/openExternal?url=" + encodeURIComponent(u.href);
     } else if (act === "copy") {
       try { await navigator.clipboard.writeText(location.href); toast("주소를 복사했어요. 크롬/사파리에 붙여넣어 주세요"); }
       catch { prompt("이 주소를 복사해서 크롬/사파리에서 열어주세요", location.href); }
@@ -227,7 +248,8 @@
 
   function openMenu() { renderIconPicker(); if (!$("#menu").open) $("#btnMenu").click(); }
   $("#btnMenu")?.addEventListener("click", renderIconPicker);
-  $("#btnInstall")?.addEventListener("click", () => { $("#menu").close(); openInstall(true); });
+  $("#btnInstall")?.addEventListener("click", () => { $("#menu").close(); deferred ? installNow() : openInstall(true); });
+  $("#btnInstallTop")?.addEventListener("click", () => (deferred ? installNow() : openInstall(true)));
 
   function toast(msg) {
     const t = $("#toast"); if (!t) return;
