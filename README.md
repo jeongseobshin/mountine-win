@@ -27,9 +27,11 @@ python3 -m http.server 8000
 브라우저에서 http://localhost:8000 을 열면 돼요.
 
 ## GitHub Pages 배포
-1. 저장소 **Settings → Pages → Source**를 `GitHub Actions`로 설정
-2. `main` 브랜치에 push하면 `.github/workflows/pages.yml`이 자동 배포
-3. 휴대폰에서 주소를 열고 "홈 화면에 추가"하면 앱처럼 쓸 수 있어요
+접속 주소: **https://jeongseobshin.github.io/mountine-win/**
+
+- Pages는 `gh-pages` 브랜치에서 배포돼요.
+- `main`에 push하면 `.github/workflows/pages.yml`이 `gh-pages`를 `main`과 똑같이 맞추고, 1~2분 뒤 사이트에 반영돼요.
+- 휴대폰에서 주소를 열고 "홈 화면에 추가"하면 앱처럼 쓸 수 있어요.
 
 ## 파일 구조
 ```
