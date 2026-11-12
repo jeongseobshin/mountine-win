@@ -1,6 +1,6 @@
 // 오프라인에서도 열리도록 앱 파일을 캐시해요. (산 위에서 신호가 약해도 OK)
 // 파일을 바꾸면 VERSION을 올려주세요.
-const VERSION = "v2";
+const VERSION = "v3";
 const CACHE = "m100-" + VERSION;
 const FILES = [
   "./", "index.html", "css/style.css", "js/mountains.js", "js/app.js", "js/pwa.js",

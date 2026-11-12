@@ -269,7 +269,7 @@
       return true;
     });
     const sorters = {
-      name: (a, b) => a.id - b.id,
+      name: (a, b) => a.n.localeCompare(b.n, "ko"),
       high: (a, b) => b.h - a.h,
       low: (a, b) => a.h - b.h,
       recent: (a, b) => ((records[b.id]?.ts || 0) - (records[a.id]?.ts || 0)) || a.id - b.id,
